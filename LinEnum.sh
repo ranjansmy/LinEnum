@@ -276,7 +276,7 @@ if [ "$homedirperms" ]; then
   echo -e "\n"
 fi
 
-#looks for files we can write to that don't belong to us
+#looks for files we can write to that don't belong to others
 if [ "$thorough" = "1" ]; then
   grfilesall=`find / -writable ! -user \`whoami\` -type f ! -path "/proc/*" ! -path "/sys/*" -exec ls -al {} \; 2>/dev/null`
   if [ "$grfilesall" ]; then
@@ -285,7 +285,7 @@ if [ "$thorough" = "1" ]; then
   fi
 fi
 
-#looks for files that belong to us
+#looks for files that belong to others
 if [ "$thorough" = "1" ]; then
   ourfilesall=`find / -user \`whoami\` -type f ! -path "/proc/*" ! -path "/sys/*" -exec ls -al {} \; 2>/dev/null`
   if [ "$ourfilesall" ]; then
