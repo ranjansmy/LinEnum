@@ -86,11 +86,12 @@ system_info()
 echo -e "\e[00;33m### SYSTEM ##############################################\e[00m" 
 
 #basic kernel info
-unameinfo=`uname -a 2>/dev/null`
+' unameinfo=`uname -a 2>/dev/null`
 if [ "$unameinfo" ]; then
   echo -e "\e[00;31m[-] Kernel information:\e[00m\n$unameinfo" 
   echo -e "\n" 
-fi
+fi '
+unameinfo=$(uname -a 2>/dev/null) && [ "$unameinfo" ] && echo -e "\e[00;31m[-] Kernel information:\e[00m\n$unameinfo\n"
 
 procver=`cat /proc/version 2>/dev/null`
 if [ "$procver" ]; then
@@ -216,23 +217,35 @@ if [ "$export" ] && [ "$sudoers" ]; then
 fi
 
 #can we sudo without supplying a password
-sudoperms=`echo '' | sudo -S -l -k 2>/dev/null`
-if [ "$sudoperms" ]; then
-  echo -e "\e[00;33m[+] We can sudo without supplying a password!\e[00m\n$sudoperms" 
+#sudoperms=`echo '' | sudo -S -l -k 2>/dev/null`
+#if [ "$sudoperms" ]; then
+#  echo -e "\e[00;33m[+] We can sudo without supplying a password!\e[00m\n$sudoperms" 
+#  echo -e "\n"
+#fi
+if sudo -n true 2>/dev/null; then
+  echo -e "\e[00;33m[+] We can sudo without supplying a password!\e[00m\n$(sudo -l)" 
   echo -e "\n"
 fi
 
+
 #check sudo perms - authenticated
-if [ "$sudopass" ]; then
-    if [ "$sudoperms" ]; then
-      :
-    else
-      sudoauth=`echo $userpassword | sudo -S -l -k 2>/dev/null`
-      if [ "$sudoauth" ]; then
-        echo -e "\e[00;33m[+] We can sudo when supplying a password!\e[00m\n$sudoauth" 
-        echo -e "\n"
-      fi
-    fi
+#if [ "$sudopass" ]; then
+#    if [ "$sudoperms" ]; then
+#      :
+#    else
+#      sudoauth=`echo $userpassword | sudo -S -l -k 2>/dev/null`
+#      if [ "$sudoauth" ]; then
+#        echo -e "\e[00;33m[+] We can sudo when supplying a password!\e[00m\n$sudoauth" 
+#        echo -e "\n"
+#      fi
+#    fi
+#fi
+if [ "$sudopass" ] && ! [ "$sudoperms" ]; then
+  sudoauth=`echo $userpassword | sudo -S -l -k 2>/dev/null`
+  if [ "$sudoauth" ]; then
+    echo -e "\e[00;33m[+] We can sudo when supplying a password!\e[00m\n$sudoauth" 
+    echo -e "\n"
+  fi
 fi
 
 ##known 'good' breakout binaries (cleaned to parse /etc/sudoers for comma separated values) - authenticated
@@ -369,8 +382,6 @@ if [ "$sestatus" ]; then
   echo -e "\e[00;31m[-] SELinux seems to be present:\e[00m\n$sestatus"
   echo -e "\n"
 fi
-
-#phackt
 
 #current path configuration
 pathinfo=`echo $PATH 2>/dev/null`
